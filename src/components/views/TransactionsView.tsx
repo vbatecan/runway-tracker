@@ -1,5 +1,4 @@
 import { ExpenseItem, IncomeItem, CashPosition, SupportedCurrency, AppData } from '@/types';
-import { formatCurrency } from '@/utils/currency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TransactionList } from '@/components/TransactionList';
 import { CashInput } from '@/components/CashInput';
