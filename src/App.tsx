@@ -21,6 +21,7 @@ import { TopBar } from "@/components/layout/TopBar";
 import DashboardView from "@/components/views/DashboardView";
 import TransactionsView from "@/components/views/TransactionsView";
 import SubscriptionsView from "@/components/views/SubscriptionsView";
+import SettingsView from "@/components/views/SettingsView";
 
 const DEFAULT_DATA: AppData = {
   expenses: [
@@ -133,6 +134,16 @@ export default function App() {
       setData((prev) => ({
         ...prev,
         settings: { ...prev.settings, currency: newCurrency },
+      }));
+    },
+    [setData]
+  );
+
+  const handleThemeChange = useCallback(
+    (theme: "light" | "dark") => {
+      setData((prev) => ({
+        ...prev,
+        settings: { ...prev.settings, theme },
       }));
     },
     [setData]
@@ -316,15 +327,19 @@ export default function App() {
               expenses={expenses}
               currency={currency}
               onToggleStatus={handleToggleSubscriptionStatus}
+              onAddExpense={handleAddExpense}
+              onSaveExpense={handleSaveExpense}
+              onDeleteExpense={handleDeleteExpense}
             />
           )}
-          {currentView !== "dashboard" &&
-            currentView !== "subscriptions" &&
-            currentView !== "transactions" && (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
-                <p>View {currentView} is under construction</p>
-              </div>
-            )}
+          {currentView === "settings" && (
+            <SettingsView
+              data={data}
+              onCurrencyChange={handleCurrencyChange}
+              onThemeChange={handleThemeChange}
+              onImportData={handleImportData}
+            />
+          )}
         </main>
 
         <footer className="border-t py-6">

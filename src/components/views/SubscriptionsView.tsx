@@ -1,17 +1,19 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import type { ExpenseItem, SupportedCurrency } from "@/types";
+import { SubscriptionDialog } from "@/components/SubscriptionDialog";
 
 interface SubscriptionsViewProps {
   expenses: ExpenseItem[];
   currency: SupportedCurrency;
   onToggleStatus: (id: string, active: boolean) => void;
+  onAddExpense: (item: ExpenseItem) => void;
+  onSaveExpense: (item: ExpenseItem) => void;
+  onDeleteExpense: (id: string) => void;
 }
 
 function getNextBillingDate(expense: ExpenseItem): Date {
@@ -33,12 +35,19 @@ function daysUntil(date: Date): number {
 
 export default function SubscriptionsView({
   expenses,
-  
+  currency,
   onToggleStatus,
+  onAddExpense,
+  onSaveExpense,
+  onDeleteExpense,
 }: SubscriptionsViewProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingSub, setEditingSub] = useState<ExpenseItem | null>(null);
+
   const subscriptions = expenses.filter(
     (e) => e.isRecurring && e.category === "Subscription"
   );
+  
   const monthlyBurn = subscriptions
     .filter((s) => s.subscriptionStatus !== "cancelled")
     .reduce((sum, s) => sum + s.amount, 0);
@@ -48,12 +57,26 @@ export default function SubscriptionsView({
     return daysUntil(getNextBillingDate(a)) - daysUntil(getNextBillingDate(b));
   });
 
+  const handleEdit = (sub: ExpenseItem) => {
+    setEditingSub(sub);
+    setIsDialogOpen(true);
+  };
+
+  const handleAdd = () => {
+    setEditingSub(null);
+    setIsDialogOpen(true);
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">
           Subscription Management
         </h2>
+        <Button onClick={handleAdd} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Add Subscription
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -134,7 +157,25 @@ export default function SubscriptionsView({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 ml-4">
+                  <div className="flex items-center gap-6 ml-4">
+                    <div className="flex items-center gap-2">
+                       <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8" 
+                        onClick={() => handleEdit(sub)}
+                       >
+                         <Pencil className="h-4 w-4" />
+                       </Button>
+                       <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-destructive hover:text-destructive" 
+                        onClick={() => onDeleteExpense(sub.id)}
+                       >
+                         <Trash2 className="h-4 w-4" />
+                       </Button>
+                    </div>
                     <span className="font-semibold tabular-nums">
                       {sub.amount.toLocaleString()}
                     </span>
@@ -151,6 +192,14 @@ export default function SubscriptionsView({
           })
         )}
       </div>
+
+      <SubscriptionDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSave={onSaveExpense}
+        onDelete={onDeleteExpense}
+        editItem={editingSub}
+      />
     </div>
   );
 }
