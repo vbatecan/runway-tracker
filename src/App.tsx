@@ -26,7 +26,13 @@ import { DataExport } from '@/components/DataExport';
 import { AdPlaceholder } from '@/components/AdPlaceholder';
 import { SubscriptionOverview } from '@/components/SubscriptionOverview';
 import { EditTransactionDialog } from '@/components/EditTransactionDialog';
+import { PaymentRadarBanner } from '@/components/PaymentRadarBanner';
+import { SubscriptionsView } from '@/components/views/SubscriptionsView';
+import { DashboardView } from '@/components/views/DashboardView';
+import { TransactionsView } from '@/components/views/TransactionsView';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { TopBar } from '@/components/layout/TopBar';
 
 import { Calculator, Wallet, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 
@@ -96,6 +102,7 @@ const DEFAULT_DATA: AppData = {
 
 export default function App() {
   const [data, setData] = useLocalStorage<AppData>('runway-tracker-data', DEFAULT_DATA);
+  const [currentView, setCurrentView] = useState('dashboard');
 
   const currency: SupportedCurrency = data.settings?.currency || 'PHP';
 
@@ -196,6 +203,16 @@ export default function App() {
     [setData]
   );
 
+  const handleToggleSubscriptionStatus = useCallback(
+    (id: string, status: SubscriptionStatus) => {
+      setData((prev) => ({
+        ...prev,
+        expenses: prev.expenses.map((e) => (e.id === id ? { ...e, subscriptionStatus: status } : e)),
+      }));
+    },
+    [setData]
+  );
+
   const handleAddCash = useCallback(
     (amount: number, label: string) => {
       const newPosition: CashPosition = {
@@ -231,160 +248,62 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Leaderboard Ad - Top Banner */}
-      <div className="hidden lg:block lg:py-2 lg:px-4">
-        <AdPlaceholder size="leaderboard" className="mx-auto max-w-[728px]" />
-      </div>
-
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-primary p-2">
-              <Calculator className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <h1 className="text-xl font-bold">Runway Tracker</h1>
+    <div className="min-h-screen bg-background flex">
+      <Sidebar currentView={currentView} setView={setCurrentView} />
+      
+      <div className="flex-1 flex flex-col min-w-0">
+        <TopBar 
+          title={currentView === 'dashboard' ? 'Dashboard' : currentView.charAt(0).toUpperCase() + currentView.slice(1)}
+        >
+          <div className="hidden lg:block lg:py-2 lg:px-4">
+            <AdPlaceholder size="leaderboard" className="mx-auto max-w-[728px]" />
           </div>
-          <p className="hidden text-sm text-muted-foreground sm:block">
-            Know exactly how long your money will last
-          </p>
-        </div>
-      </header>
+        </TopBar>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
-        {/* Runway Counter - Full Width Hero */}
-        <section className="mb-6">
-          <RunwayCounter
-            runway={runway}
-            currentCash={totalCash}
-            monthlyBurn={Math.abs(netCashFlow)}
-            currency={currency}
-          />
-        </section>
-
-        {/* Two Column Layout: Content + Sidebar */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left: Main Content (3/4 width on desktop) */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Stats Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <ArrowDownCircle className="mx-auto h-5 w-5 text-red-500 mb-1" />
-                  <p className="text-2xl font-bold">{formatCurrency(monthlyBurn, currency)}</p>
-                  <p className="text-xs text-muted-foreground">Monthly Burn</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <ArrowUpCircle className="mx-auto h-5 w-5 text-green-500 mb-1" />
-                  <p className="text-2xl font-bold">{formatCurrency(monthlyIncome, currency)}</p>
-                  <p className="text-xs text-muted-foreground">Monthly Income</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <ArrowDownCircle className="mx-auto h-5 w-5 text-primary mb-1" />
-                  <p className="text-2xl font-bold">{formatCurrency(totalCash, currency)}</p>
-                  <p className="text-xs text-muted-foreground">Total Cash</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <Calculator className="mx-auto h-5 w-5 text-amber-500 mb-1" />
-                  <p
-                    className={`text-2xl font-bold ${netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}
-                  >
-                    {netCashFlow >= 0 ? '+' : ''}
-                    {formatCurrency(netCashFlow, currency)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Net Cash Flow</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Subscription Hub - New Section */}
-            <SubscriptionOverview expenses={expenses} currency={currency} />
-
-            {/* Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">24-Month Cash Projection</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <RunwayChart data={baseProjection} currency={currency} />
-              </CardContent>
-            </Card>
-
-            {/* Transactions */}
-            <TransactionList
-              expenses={expenses}
-              incomes={incomes}
+        <main className="flex-1 p-6 overflow-auto">
+          {currentView === 'dashboard' && (
+            <DashboardView 
+              data={data}
+              currency={currency}
+            />
+          )}
+          {currentView === 'transactions' && (
+            <TransactionsView 
+              data={data}
+              currency={currency}
+              onAddExpense={handleAddExpense}
+              onAddIncome={handleAddIncome}
               onDeleteExpense={handleDeleteExpense}
               onDeleteIncome={handleDeleteIncome}
               onEditExpense={handleEditExpense}
               onEditIncome={handleEditIncome}
-              currency={currency}
+              onSaveExpense={handleSaveExpense}
+              onSaveIncome={handleSaveIncome}
+              onAddCash={handleAddCash}
+              onDeleteCash={handleDeleteCash}
             />
+          )}
+          {currentView === 'subscriptions' && (
+            <SubscriptionsView 
+              expenses={expenses} 
+              currency={currency} 
+              onToggleStatus={handleToggleSubscriptionStatus}
+            />
+          )}
+          {currentView !== 'dashboard' && currentView !== 'subscriptions' && currentView !== 'transactions' && (
+            <div className="flex items-center justify-center h-full text-muted-foreground">
+              <p>View {currentView} is under construction</p>
+            </div>
+          )}
+        </main>
 
-            {/* Data Export */}
-            <DataExport data={data} onImport={handleImportData} />
+        <footer className="border-t py-6">
+          <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+            <p>Runway Tracker - Local-first expense tracking</p>
+            <p className="mt-1">Your data is stored locally and never leaves your device.</p>
           </div>
-
-          {/* Right: Sidebar Ads + Add Forms (1/4 width on desktop) */}
-          <div className="space-y-6">
-            {/* Currency Selector */}
-            <CurrencySelector value={currency} onChange={handleCurrencyChange} />
-
-            {/* Add Buttons */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Add New</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <AddExpenseDialog onAdd={handleAddExpense} type="expense" />
-                <AddExpenseDialog onAdd={handleAddIncome} type="income" />
-              </CardContent>
-            </Card>
-
-            {/* Cash Input */}
-            <CashInput
-              cashPositions={cashPositions}
-              onAdd={handleAddCash}
-              onDelete={handleDeleteDeleteCash}
-              currency={currency}
-            />
-            
-            {/* Edit Dialog - Shared for both types */}
-            <EditTransactionDialog
-              open={!!editingItem.item}
-              onOpenChange={(open) => {
-                if (!open) setEditingItem({ item: null, type: 'expense' });
-              }}
-              item={editingItem.item}
-              type={editingItem.type}
-              onSave={editingItem.type === 'expense' ? handleSaveExpense : handleSaveIncome}
-              onDelete={editingItem.type === 'expense' ? handleDeleteExpense : handleDeleteIncome}
-            />
-
-            {/* Sidebar Ad */}
-            <AdPlaceholder size="sidebar" />
-
-            {/* Tall Sidebar Ad (below) */}
-            <AdPlaceholder size="tall-sidebar" />
-          </div>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t mt-12 py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>Runway Tracker - Local-first expense tracking</p>
-          <p className="mt-1">Your data is stored locally and never leaves your device.</p>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }
