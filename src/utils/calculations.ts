@@ -164,4 +164,37 @@ export function getDaysUntilBilling(billingDate: string): number {
   return Math.ceil((billing.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-export function getUpcomingPayments(expenses: ExpenseItem[], currentDate: Date = new Date()) {\n  const sevenDaysFromNow = new Date(currentDate);\n  sevenDaysFromNow.setDate(currentDate.getDate() + 7);\n\n  return expenses\n    .filter((e) => e.nextBillingDate && e.subscriptionStatus !== 'cancelled')\n    .map((e) => ({\n      item: e,\n      date: new Date(e.nextBillingDate!),\n    }))\n    .filter((p) => {\n      const d = p.date;\n      d.setHours(0, 0, 0, 0);\n      const today = new Date(currentDate);\n      today.setHours(0, 0, 0, 0);\n      return d >= today && d <= sevenDaysFromNow;\n    }))\n    .sort((a, b) => a.date.getTime() - b.date.getTime());\n}
+
+export function getSubscriptionMetrics(expenses: any[]) {
+  const active = expenses.filter(e => e.isRecurring && e.category === 'Subscription' && e.subscriptionStatus !== 'cancelled');
+  const totalMonthly = active.reduce((sum, e) => sum + e.amount, 0);
+  
+  // Reuse getUpcomingPayments for the list
+  const upcoming = getUpcomingPayments(expenses);
+  
+  return {
+    activeCount: active.length,
+    totalMonthly,
+    upcomingPayments: upcoming
+  };
+}
+
+export function getUpcomingPayments(expenses: ExpenseItem[], currentDate: Date = new Date()) {
+  const sevenDaysFromNow = new Date(currentDate);
+  sevenDaysFromNow.setDate(currentDate.getDate() + 7);
+
+  return expenses
+    .filter((e) => e.nextBillingDate && e.subscriptionStatus !== 'cancelled')
+    .map((e) => ({
+      item: e,
+      date: new Date(e.nextBillingDate!),
+    }))
+    .filter((p) => {
+      const d = p.date;
+      d.setHours(0, 0, 0, 0);
+      const today = new Date(currentDate);
+      today.setHours(0, 0, 0, 0);
+      return d >= today && d <= sevenDaysFromNow;
+    })
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+}

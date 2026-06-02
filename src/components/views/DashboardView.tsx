@@ -1,4 +1,3 @@
-import React from 'react';
 import { ExpenseItem, SupportedCurrency } from '@/types';
 import { formatCurrency } from '@/utils/currency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +5,7 @@ import { RunwayCounter } from '@/components/RunwayCounter';
 import { RunwayChart } from '@/components/RunwayChart';
 import { SubscriptionOverview } from '@/components/SubscriptionOverview';
 import { PaymentRadarBanner } from '@/components/PaymentRadarBanner';
-import { Calculator, Wallet, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { Calculator, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 
 interface DashboardViewProps {
   expenses: ExpenseItem[];
@@ -20,7 +19,7 @@ interface DashboardViewProps {
   setCurrentView: (view: string) => void;
 }
 
-export function DashboardView({
+export default function DashboardView({
   expenses,
   currency,
   runway,
@@ -41,7 +40,7 @@ export function DashboardView({
       
       <section className="mb-6">
         <RunwayCounter
-          runway={runway}
+          runway={runway as any}
           currentCash={totalCash}
           monthlyBurn={Math.abs(netCashFlow)}
           currency={currency}

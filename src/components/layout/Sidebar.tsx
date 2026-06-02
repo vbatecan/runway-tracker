@@ -1,4 +1,3 @@
-import React from 'react';
 import { LayoutDashboard, CreditCard, ArrowLeftRight, Settings, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

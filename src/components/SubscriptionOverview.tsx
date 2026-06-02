@@ -5,7 +5,7 @@ import { formatCurrency } from '@/utils/currency';
 import { getSubscriptionMetrics } from '@/utils/calculations';
 import { Calendar, CreditCard, AlertCircle } from 'lucide-react';
 
-export function SubscriptionOverview({ expenses, currency }: { expenses: ExpenseItem[]; currency: string }) {
+export function SubscriptionOverview({ expenses, currency }: { expenses: ExpenseItem[]; currency: any }) {
   const metrics = getSubscriptionMetrics(expenses);
 
   if (metrics.activeCount === 0) {
@@ -39,7 +39,7 @@ export function SubscriptionOverview({ expenses, currency }: { expenses: Expense
               <Calendar className="h-3 w-3" /> Upcoming Payments
             </p>
             <div className="grid gap-2">
-              {metrics.upcomingPayments.slice(0, 3).map((payment) => {
+              {metrics.upcomingPayments.slice(0, 3).map((payment: any) => {
                 const isUrgent = payment.daysUntil <= 7;
                 return (
                   <div

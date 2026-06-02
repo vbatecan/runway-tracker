@@ -1,4 +1,3 @@
-import React from 'react';
 import { ExpenseItem, IncomeItem, CashPosition, SupportedCurrency, AppData } from '@/types';
 import { formatCurrency } from '@/utils/currency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +31,7 @@ interface TransactionsViewProps {
   setEditingItem: (item: { item: ExpenseItem | IncomeItem | null; type: 'expense' | 'income' }) => void;
 }
 
-export function TransactionsView({
+export default function TransactionsView({
   data,
   currency,
   expenses,
@@ -94,7 +93,7 @@ export function TransactionsView({
           }}
           item={editingItem.item}
           type={editingItem.type}
-          onSave={editingItem.type === 'expense' ? onSaveExpense : onSaveIncome}
+          onSave={editingItem.type === 'expense' ? (item) => onSaveExpense(item as ExpenseItem) : onSaveIncome}
           onDelete={editingItem.type === 'expense' ? onDeleteExpense : onDeleteIncome}
         />
 

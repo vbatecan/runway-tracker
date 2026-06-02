@@ -1,4 +1,3 @@
-import React from 'react';
 import { ExpenseItem } from '@/types';
 import { formatCurrency, getUpcomingPayments } from '@/utils/calculations';
 import { Bell } from 'lucide-react';
